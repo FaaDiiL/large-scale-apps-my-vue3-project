@@ -1,15 +1,13 @@
-“
 <template>
   <div>
-    <h3>Items:</h3>
-    <ul>
-      <li
-        v-for="item in items"
-        @click="() => onItemSelect(item)"
-        :key="item.id"
-      >
-        {{ item.name }}
-      </li>
+    <h3>Items - loading: {{ loading }}</h3>
+    <Loader v-show="loading" />
+    <ul v-show="!loading">
+      <ItemComponent v-for="item in items"
+      :key="item.id"
+      :model="item"
+      @select="onItemSelect"
+      />
     </ul>
   </div>
 </template>
@@ -17,21 +15,51 @@
 <script lang="ts">
 import { defineComponent, PropType } from 'vue'
 import { ItemInterface } from '@/models/items/Item.interface'
+import ItemComponent from './children/Item.component.vue'
+import Loader from '@/components/shared/Loader.component.vue'
+import store from '@/store'
 
 export default defineComponent({
+  components: {
+    ItemComponent,
+    Loader
+  },
   props: {
-    items: {
-      type: Array as PropType<ItemInterface[]>,
-    },
+      items: {
+          type: Array as PropType<ItemInterface[]>,
+      },
+      loading: {
+        type: Boolean
+      }
   },
-  setup() {
-    const onItemSelect = (item: ItemInterface) => {
-      item.selected = !item.selected
-      console.log('onItemSelect', item.id, item.selected)
-    }
-    return {
-      onItemSelect,
-    }
-  },
+  setup(_,{ emit }) {
+      const onItemSelect = (item: ItemInterface) => {
+          emit('selectItem', item)
+      };
+      const onSelectItem = (item: ItemInterface) => {
+        store.dispatch('selectItem', {
+          id: item.id,
+          selected: !item.selected
+        })
+      }
+      return {
+        onSelectItem,
+        onItemSelect
+      };
+  }
 })
 </script>
+
+<style lang="scss">
+ul {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  list-style-type: none;
+  margin-block-start: 0;
+  margin-block-end: 0;
+  margin-inline-start: 0px;
+  margin-inline-end: 0px;
+  padding-inline-start: 0px;
+}
+</style>
